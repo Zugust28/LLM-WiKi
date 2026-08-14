@@ -20,3 +20,11 @@
 - Updated: `index.md`
 - Covered Hermes capabilities, architecture, context compression, prompt caching, plugin compatibility, and the Wiki operating workflow
 - No secrets or patient-identifying information included
+
+## [2026-08-14] create | Knowledge Graph Dashboard
+
+- Created `dashboard/server.py` and `dashboard/index.html`
+- Dashboard reads Wiki Markdown and `[[wikilinks]]` dynamically
+- Added search, domain/type filters, zoom controls, and node inspector
+- Restricted pages are excluded from the graph API
+- Added usage guide at `dashboard/README.md`

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LLM Wiki / Knowledge Graph</title>
+  <style>
+    :root { --bg:#071014; --panel:#0d1a20; --panel2:#10232b; --line:#21414b; --text:#e7f0ed; --muted:#86a19e; --accent:#7de2c0; --gold:#f4c56a; --red:#ff8d7e; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font-family:Inter, ui-sans-serif, system-ui, sans-serif; }
+    .shell { min-height:100vh; display:grid; grid-template-rows:auto 1fr; }
+    header { border-bottom:1px solid var(--line); padding:22px 28px 18px; display:flex; align-items:end; justify-content:space-between; gap:24px; background:#09151a; }
+    .eyebrow { color:var(--accent); font:12px ui-monospace, SFMono-Regular, monospace; letter-spacing:.14em; text-transform:uppercase; }
+    h1 { margin:7px 0 0; font-size:clamp(24px,4vw,42px); line-height:1; letter-spacing:-.02em; }
+    .sub { margin:9px 0 0; color:var(--muted); max-width:600px; font-size:14px; }
+    .stats { display:flex; gap:24px; text-align:right; white-space:nowrap; }
+    .stat strong { display:block; color:var(--gold); font-size:25px; }
+    .stat span { color:var(--muted); font:11px ui-monospace, monospace; text-transform:uppercase; }
+    main { min-height:0; display:grid; grid-template-columns:260px minmax(0,1fr) 300px; }
+    aside, .inspector { background:var(--panel); padding:20px; }
+    aside { border-right:1px solid var(--line); }
+    .inspector { border-left:1px solid var(--line); }
+    label, .section-title { display:block; color:var(--muted); font:11px ui-monospace, monospace; letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px; }
+    input, select { width:100%; background:#081318; color:var(--text); border:1px solid var(--line); padding:11px 12px; border-radius:4px; font:14px inherit; outline:none; }
+    input:focus, select:focus { border-color:var(--accent); }
+    .control { margin-bottom:22px; }
+    .checks { display:grid; gap:9px; }
+    .checks label { margin:0; display:flex; align-items:center; gap:9px; letter-spacing:0; text-transform:none; font:14px inherit; color:var(--text); cursor:pointer; }
+    input[type=checkbox] { width:15px; accent-color:var(--accent); }
+    .legend { display:grid; gap:8px; margin-top:24px; border-top:1px solid var(--line); padding-top:17px; }
+    .legend-row { display:flex; align-items:center; gap:9px; color:var(--muted); font-size:12px; }
+    .dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+    .graph-wrap { min-width:0; position:relative; overflow:hidden; background:radial-gradient(circle at 50% 42%, #122831 0, #09151a 47%, #071014 100%); }
+    #graph { width:100%; height:100%; min-height:590px; display:block; cursor:grab; }
+    #graph:active { cursor:grabbing; }
+    .zoom { position:absolute; right:18px; bottom:18px; display:flex; gap:5px; }
+    button { background:var(--panel2); color:var(--text); border:1px solid var(--line); padding:9px 12px; border-radius:4px; cursor:pointer; }
+    button:hover { border-color:var(--accent); color:var(--accent); }
+    .empty { color:var(--muted); font-size:14px; line-height:1.6; }
+    .selected-title { font-size:21px; line-height:1.15; margin:3px 0 10px; }
+    .badge { display:inline-block; padding:4px 7px; border:1px solid var(--line); color:var(--accent); font:11px ui-monospace, monospace; margin:0 4px 5px 0; }
+    .meta { color:var(--muted); font:12px ui-monospace, monospace; line-height:1.7; margin:14px 0; }
+    .excerpt { border-top:1px solid var(--line); padding-top:14px; color:#b6c9c5; font-size:14px; line-height:1.65; }
+    .node-label { fill:var(--text); font:12px ui-sans-serif, system-ui, sans-serif; pointer-events:none; }
+    .edge { stroke:#3c6970; stroke-width:1.2; opacity:.65; }
+    .node { stroke:#bceee0; stroke-width:1.5; cursor:pointer; }
+    .node.dim, .edge.dim { opacity:.12; }
+    .node.active { stroke:var(--gold); stroke-width:3; }
+    @media (max-width: 900px) { header { align-items:start; flex-direction:column; } .stats { text-align:left; } main { grid-template-columns:210px minmax(0,1fr); } .inspector { grid-column:1/-1; border-left:0; border-top:1px solid var(--line); min-height:210px; } }
+    @media (max-width: 620px) { main { display:block; } aside { border-right:0; border-bottom:1px solid var(--line); } #graph { min-height:500px; } .inspector { min-height:220px; } }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header><div><div class="eyebrow">LLM WIKI / KNOWLEDGE GRAPH</div><h1>ความสัมพันธ์ของความรู้</h1><p class="sub">โหนดคือหน้า Wiki เส้นคือการอ้างอิงระหว่างหน้า ข้อมูลอ่านจาก Markdown จริงทุกครั้งที่เปิด dashboard</p></div><div class="stats"><div class="stat"><strong id="page-count">—</strong><span>pages</span></div><div class="stat"><strong id="link-count">—</strong><span>links</span></div></div></header>
+  <main>
+    <aside><div class="control"><label for="search">ค้นหา</label><input id="search" placeholder="ชื่อหน้า, tag, เนื้อหา..."></div><div class="control"><label for="domain">โดเมน</label><select id="domain"><option value="all">ทุกโดเมน</option></select></div><div class="control"><div class="section-title">แสดงประเภท</div><div class="checks" id="types"></div></div><div class="legend"><div class="section-title">สีของโหนด</div><div class="legend-row"><i class="dot" style="background:#7de2c0"></i>Entity</div><div class="legend-row"><i class="dot" style="background:#f4c56a"></i>Concept</div><div class="legend-row"><i class="dot" style="background:#ff8d7e"></i>Comparison</div><div class="legend-row"><i class="dot" style="background:#9db5ff"></i>Query</div></div></aside>
+    <section class="graph-wrap"><svg id="graph" viewBox="0 0 900 650" aria-label="Knowledge graph"></svg><div class="zoom"><button id="reset">Reset</button><button id="minus">−</button><button id="plus">+</button></div></section>
+    <section class="inspector" id="inspector"><div class="section-title">Node inspector</div><p class="empty">เลือกโหนดบนกราฟเพื่อดูรายละเอียดและเส้นทางความสัมพันธ์</p></section>
+  </main>
+</div>
+<script>
+const svg=document.querySelector('#graph'), ns='http://www.w3.org/2000/svg';
+let data={pages:[],links:[]}, selected=null, scale=1, offset={x:0,y:0};
+const colors={entity:'#7de2c0',concept:'#f4c56a',comparison:'#ff8d7e',query:'#9db5ff'};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function pageMatches(p){const q=document.querySelector('#search').value.toLowerCase();const d=document.querySelector('#domain').value;const types=[...document.querySelectorAll('#types input:checked')].map(x=>x.value);return (!q||JSON.stringify(p).toLowerCase().includes(q))&&(d==='all'||p.domain===d)&&types.includes(p.type)}
+function setup(){const domains=[...new Set(data.pages.map(p=>p.domain))].sort();document.querySelector('#domain').innerHTML='<option value="all">ทุกโดเมน</option>'+domains.map(d=>`<option>${esc(d)}</option>`).join('');const types=[...new Set(data.pages.map(p=>p.type))].sort();document.querySelector('#types').innerHTML=types.map(t=>`<label><input type="checkbox" value="${esc(t)}" checked>${esc(t)}</label>`).join('');document.querySelector('#search').oninput=render;document.querySelector('#domain').onchange=render;document.querySelector('#types').onchange=render;document.querySelector('#reset').onclick=()=>{scale=1;offset={x:0,y:0};render()};document.querySelector('#plus').onclick=()=>{scale*=1.2;render()};document.querySelector('#minus').onclick=()=>{scale/=1.2;render()};render()}
+function render(){const visible=data.pages.filter(pageMatches), ids=new Set(visible.map(p=>p.id)), pos={};const w=900,h=650;visible.forEach((p,i)=>{const a=(i/Math.max(visible.length,1))*Math.PI*2-Math.PI/2;const r=Math.min(245,55+visible.length*18);pos[p.id]={x:w/2+Math.cos(a)*r,y:h/2+Math.sin(a)*r}});const edges=data.links.filter(e=>ids.has(e.source)&&ids.has(e.target));svg.innerHTML=`<g transform="translate(${offset.x} ${offset.y}) scale(${scale})"><g>${edges.map(e=>`<line class="edge" x1="${pos[e.source].x}" y1="${pos[e.source].y}" x2="${pos[e.target].x}" y2="${pos[e.target].y}"/>`).join('')}</g>${visible.map(p=>{const active=selected===p.id;return `<g data-id="${esc(p.id)}" class="node-group"><circle class="node ${active?'active':''}" cx="${pos[p.id].x}" cy="${pos[p.id].y}" r="${active?12:9}" fill="${colors[p.type]||'#b5c5c1'}"/><text class="node-label" x="${pos[p.id].x+15}" y="${pos[p.id].y+4}">${esc(p.title)}</text></g>`}).join('')}</g>`;svg.querySelectorAll('.node-group').forEach(n=>n.onclick=()=>select(n.dataset.id));document.querySelector('#page-count').textContent=visible.length;document.querySelector('#link-count').textContent=edges.length;if(selected&&!ids.has(selected))selected=null}
+function select(id){selected=id;const p=data.pages.find(x=>x.id===id);const related=data.links.filter(e=>e.source===id||e.target===id).map(e=>data.pages.find(x=>x.id===((e.source===id)?e.target:e.source))).filter(Boolean);document.querySelector('#inspector').innerHTML=`<div class="section-title">Node inspector</div><h2 class="selected-title">${esc(p.title)}</h2><div>${[p.domain,p.type,...p.tags].map(x=>`<span class="badge">${esc(x)}</span>`).join('')}</div><div class="meta">${esc(p.path)}<br>ความเชื่อมั่น: ${esc(p.confidence||'ไม่ระบุ')}<br>เชื่อมโยง: ${related.length} หน้า</div><p class="excerpt">${esc(p.excerpt||'ไม่มีคำอธิบาย')}</p>${related.length?`<div class="section-title">Linked pages</div>${related.map(x=>`<button style="margin:0 5px 5px 0" onclick="select('${esc(x.id)}')">${esc(x.title)}</button>`).join('')}`:''}`;render()}
+fetch('/api/graph').then(r=>r.json()).then(d=>{data=d;setup()}).catch(()=>{document.querySelector('#inspector').innerHTML='<p class="empty">โหลดข้อมูลไม่สำเร็จ ตรวจว่า server.py กำลังทำงานอยู่</p>'});
+</script>
+</body>
+</html>
