@@ -12,3 +12,11 @@
 - Created the three-layer structure: immutable raw sources, maintained wiki pages, and schema
 - Created `SCHEMA.md`, `index.md`, and `log.md`
 - Initial content pages: 0
+
+## [2026-08-14] ingest | Hermes Agent
+
+- Source captured: `raw/articles/hermes-agent-overview.md`
+- Pages created: `entities/hermes-agent.md`, `concepts/hermes-architecture.md`, `concepts/llm-wiki.md`
+- Updated: `index.md`
+- Covered Hermes capabilities, architecture, context compression, prompt caching, plugin compatibility, and the Wiki operating workflow
+- No secrets or patient-identifying information included
