@@ -9,3 +9,5 @@ Thumbs.db
 *.key
 *.pem
 credentials*.json
+__pycache__/
+*.pyc
