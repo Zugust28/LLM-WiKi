@@ -1,0 +1,13 @@
+[Unit]
+Description=LLM Wiki Knowledge Graph Dashboard
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/codex/wiki
+ExecStart=/usr/bin/python3 /home/codex/wiki/dashboard/server.py --host 127.0.0.1 --port 8765
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target
